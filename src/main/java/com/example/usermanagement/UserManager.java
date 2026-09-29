@@ -1,6 +1,9 @@
 package com.example.usermanagement;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 
+@Component
 public class UserManager {
     private ArrayList<User> users;
 
