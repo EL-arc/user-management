@@ -1,12 +1,12 @@
 package com.example.usermanagement;
 
-public class Result {
-    private int code;
-    private String message;
-    private Object data;
+public class Result<T> {
+    private final int code;
+    private final String message;
+    private final T data;
 
 
-    public Result(int code, String message, Object data) {
+    public Result(int code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -20,7 +20,7 @@ public class Result {
         return message;
     }
 
-    public Object getData() {
+    public T getData() {
         return data;
     }
 }

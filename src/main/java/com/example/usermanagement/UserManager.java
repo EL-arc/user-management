@@ -1,70 +1,48 @@
 package com.example.usermanagement;
+
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+/** In-memory storage. Operations are atomic; callers receive detached snapshots. */
 @Component
 public class UserManager {
-    private ArrayList<User> users;
+    private final Map<Integer, User> users = new LinkedHashMap<>();
 
-    public UserManager() {
-        users = new ArrayList<>();
-    }
-
-    public boolean addUser(User user){
-
-        for(int i=0; i<users.size(); i++){
-            if(users.get(i).getId() == user.getId()){
-                return false;
-            }
-
+    public synchronized boolean addUser(User user) {
+        if (users.containsKey(user.getId())) {
+            return false;
         }
-        users.add(user);
+        users.put(user.getId(), copy(user));
         return true;
-
-
     }
 
-
-    public ArrayList<User> getAllUsers() {
-        return users;
+    public synchronized ArrayList<User> getAllUsers() {
+        ArrayList<User> snapshot = new ArrayList<>();
+        users.values().forEach(user -> snapshot.add(copy(user)));
+        return snapshot;
     }
 
-    public User getUserById(int id) {
-        for (User user : users) {
-            if (user.getId() == id) {
-                return user;
-            }
+    public synchronized User getUserById(int id) {
+        User user = users.get(id);
+        return user == null ? null : copy(user);
+    }
+
+    public synchronized boolean deleteUserById(int id) {
+        return users.remove(id) != null;
+    }
+
+    public synchronized boolean updateUser(int id, String name) {
+        if (!users.containsKey(id)) {
+            return false;
         }
-        return null;
+        users.put(id, new User(id, name));
+        return true;
     }
 
-    public boolean deleteUserById(int id) {
-         for(int i = 0; i<users.size(); i++){
-             if(users.get(i).getId() == id){
-                 users.remove(i);
-                 return true;
-             }
-
-         }
-        return false;
+    private User copy(User user) {
+        return new User(user.getId(), user.getName());
     }
-
-    public boolean updateUser(int id , String name){
-        for(int i = 0; i<users.size(); i++){
-           if(users.get(i).getId() == id){
-               users.get(i).setName(name);
-               return true;
-           }
-        }
-        return false;
-    }
-
-
-
-
-
-
-
-
 }

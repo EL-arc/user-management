@@ -1,27 +1,46 @@
 package com.example.usermanagement;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.List;
 
 @RestController
+@RequestMapping("/users")
 public class UserController {
-    @Autowired
+    private final UserService userService;
 
-    private UserService userService;
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
+    @GetMapping
+    public Result<List<User>> getAllUsers() {
+        return new Result<>(200, "success", userService.getAllUsers());
+    }
 
-    @GetMapping("/users/{id}")
-    public Result getUser(@PathVariable int id) {
-        User user = userService.getUserById(id);
+    @GetMapping("/{id}")
+    public Result<User> getUser(@PathVariable int id) {
+        return new Result<>(200, "success", userService.getUserById(id));
+    }
 
-        if(user == null) {
-            Result result = new Result(404,"用户不存在",null);
-            return result;
-        }
-        Result result = new Result(200,"success",user);
+    @PostMapping
+    public ResponseEntity<Result<User>> addUser(@Valid @RequestBody CreateUserRequest request) {
+        User user = userService.addUser(request.id(), request.name());
+        return ResponseEntity.created(URI.create("/users/" + user.getId()))
+                .body(new Result<>(201, "success", user));
+    }
 
-        return result;
+    @PutMapping("/{id}")
+    public Result<User> updateUser(@PathVariable int id, @Valid @RequestBody UpdateUserRequest request) {
+        return new Result<>(200, "success", userService.updateUser(id, request.name()));
+    }
+
+    @DeleteMapping("/{id}")
+    public Result<Void> deleteUser(@PathVariable int id) {
+        userService.deleteUserById(id);
+        return new Result<>(200, "success", null);
     }
 }
